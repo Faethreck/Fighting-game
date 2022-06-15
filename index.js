@@ -5,14 +5,16 @@ canvas.width = 1024;
 canvas.height = 576;
 c.fillRect(0, 0, canvas.width, canvas.height);
 
-const gravity = 0.7;
+const gravity = 0.2;
 
 const background = new Sprite({
     position: {
     x: 0,
     y: 0
     },
-    imageSrc: './img/background.png'
+    imageWidth: canvas.width,
+    imageHeight: canvas.height,
+    imageSrc: './img/background.png',
 })
 
 const shop = new Sprite({
@@ -20,9 +22,13 @@ const shop = new Sprite({
     x: 600,
     y: 128
     },
+    imageWidth: 708,
+    imageHeight: 128,
+    width: 100,
     imageSrc: './img/shop.png',
     scale: 2.75,
-    framesMax: 6
+    framesMax: 6,
+    framesHold: 15
 })
 
 const player1 = new Fighter({
@@ -38,14 +44,40 @@ const player1 = new Fighter({
         x: 0,
         y: 0
     },
-    imageSrc: './img/samuraiMack/Idle.png',
+    imageSrc: './img/kenji/Idle.png',
     framesMax: 8,
     scale: 2.5,
     offset: {
         x: 215,
         y: 156
     },
-    framesHold: 100,
+    framesHold: 6,
+    sprites: {
+        idle: {
+            imageSrc: './img/samuraiMack/Idle.png',
+            framesMax: 8,
+        },
+        run: {
+            imageSrc: './img/samuraiMack/Run.png',
+            framesMax: 8,
+        },
+        jump: {
+            imageSrc: './img/samuraiMack/Jump.png',
+            framesMax: 2,
+        },
+        fall: {
+            imageSrc: './img/samuraiMack/Fall.png',
+            framesMax: 2,
+        },
+        attack1: {
+            imageSrc: './img/samuraiMack/Attack1.png',
+            framesMax: 6,
+        },
+        attack2: {
+            imageSrc: './img/samuraiMack/Attack2.png',
+            framesMax: 6,
+        },
+    },
 });
 
 const player2 = new Fighter({
@@ -62,13 +94,37 @@ const player2 = new Fighter({
         y: 0
     },
     scale: 2.5,
-    imageSrc: './img/kenji/Idle.png',
-    framesMax: 4,
     offset: {
-        x: 415,
+        x: 215,
         y: 170
     },
-    framesHold: 25,
+    framesHold: 9,
+    sprites: {
+        idle: {
+            imageSrc: './img/kenji/Idle.png',
+            framesMax: 4,
+        },
+        run: {
+            imageSrc: './img/kenji/Run.png',
+            framesMax: 8,
+        },
+        jump: {
+            imageSrc: './img/kenji/Jump.png',
+            framesMax: 2,
+        },
+        fall: {
+            imageSrc: './img/kenji/Fall.png',
+            framesMax: 2,
+        },
+        attack1: {
+            imageSrc: './img/kenji/Attack1.png',
+            framesMax: 4,
+        },
+        attack2: {
+            imageSrc: './img/kenji/Attack2.png',
+            framesMax: 4,
+        },
+    }
 });
 
 console.log(player1)
@@ -107,27 +163,48 @@ function animate() {
     player2.velocity.x = 0; // Right Player
 
     // Player 1 Movement
+
+
     if (keys.a.pressed) {
-        player1.velocity.x = -5
+        player1.velocity.x = -3
+        player1.switchSprite('run')
     } else if (keys.d.pressed) {
-        player1.velocity.x = 5
+        player1.velocity.x = 3
+        player1.switchSprite('run')
+    } else {
+        player1.switchSprite('idle')
     }
     if (keys.w.pressed && player1.lastJump === 'w') {
         if (player1.lastJump === 'w' && player1.position.y >= 330 && player1.position.y <= 331) {
-            player1.velocity.y = -13
+            player1.velocity.y = -7
         }
+    }
+    console.log(player1.velocity.y)
+    if (player1.velocity.y < 0) {
+        player1.switchSprite('jump')
+    } else if (player1.velocity.y > 0) {
+        player1.switchSprite('fall')
     }
 
     // Player 2 Movement
     if (keys.ArrowLeft.pressed) {
-        player2.velocity.x = -5
+        player2.velocity.x = -3
+        player2.switchSprite('run')
     } else if (keys.ArrowRight.pressed) {
-        player2.velocity.x = 5
+        player2.velocity.x = 3
+        player2.switchSprite('run')
+    } else {
+        player2.switchSprite('idle')
     }
     if (keys.ArrowUp.pressed && player2.lastJump === 'ArrowUp') {
         if (player2.lastJump === 'ArrowUp' && player2.position.y >= 330 && player2.position.y <= 331) {
-            player2.velocity.y = -13
+            player2.velocity.y = -7
         }
+    }
+    if (player2.velocity.y < 0) {
+        player2.switchSprite('jump')
+    } else if (player2.velocity.y > 0) {
+        player2.switchSprite('fall')
     }
 
     // Detect for Collision 
@@ -179,7 +256,11 @@ window.addEventListener('keydown', () => {
             player1.lastJump = 'w'
             break
         case ' ':
-            player1.attack()
+            if (player1.isAttacking === true && player1.frameCurrent > 0) {
+                player1.attack('attack2')
+            } else {
+                player1.attack('attack1')
+            }
             break
 
         // Player 2 buttons
@@ -196,7 +277,12 @@ window.addEventListener('keydown', () => {
             player2.lastKey = 'ArrowRight'
             break
         case 'ArrowDown':
-            player2.attack()
+            
+            if (player2.isAttacking === true && player2.frameCurrent > 0) {
+                player2.attack('attack2')
+            } else {
+                player2.attack('attack1')
+            }
             break
     }
     console.log(event);
@@ -233,7 +319,3 @@ window.addEventListener('keyup', () => {
     }
     console.log(event);
 })
-
-console.log(player1.position.y)
-
-
