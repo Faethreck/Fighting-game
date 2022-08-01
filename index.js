@@ -77,7 +77,24 @@ const player1 = new Fighter({
             imageSrc: './img/samuraiMack/Attack2.png',
             framesMax: 6,
         },
+        takeHit: {
+            imageSrc: './img/samuraiMack/Take Hit.png',
+            framesMax: 4,
+        },
+        death: {
+            imageSrc: './img/samuraiMack/Death.png',
+            framesMax: 6,
+        },
+
     },
+    attackBox: {
+        offset: {
+            x: 100,
+            y: 50,
+        },
+        width: 160,
+        height: 50
+    }
 });
 
 const player2 = new Fighter({
@@ -124,6 +141,23 @@ const player2 = new Fighter({
             imageSrc: './img/kenji/Attack2.png',
             framesMax: 4,
         },
+        takeHit: {
+            imageSrc: './img/kenji/Take hit.png',
+            framesMax: 3,
+        },
+        death: {
+            imageSrc: './img/kenji/Death.png',
+            framesMax: 7,
+        },
+        
+    },
+    attackBox: {
+        offset: {
+            x: -170,
+            y: 50,
+        },
+        width: 170,
+        height: 50
     }
 });
 
@@ -178,7 +212,7 @@ function animate() {
         if (player1.lastJump === 'w' && player1.position.y >= 330 && player1.position.y <= 331) {
             player1.velocity.y = -7
         }
-    }
+    } 
     console.log(player1.velocity.y)
     if (player1.velocity.y < 0) {
         player1.switchSprite('jump')
@@ -200,33 +234,46 @@ function animate() {
         if (player2.lastJump === 'ArrowUp' && player2.position.y >= 330 && player2.position.y <= 331) {
             player2.velocity.y = -7
         }
-    }
+    } 
     if (player2.velocity.y < 0) {
         player2.switchSprite('jump')
     } else if (player2.velocity.y > 0) {
         player2.switchSprite('fall')
     }
 
-    // Detect for Collision 
+    // Detect for Collision & enemy gets hit
 
     if (
         rectangularCollision({
             rectangle1: player1,
             rectangle2: player2
-        }) && player1.isAttacking) {
+        }) && 
+        player1.isAttacking && player1.frameCurrent === 4
+    ) {
+        player2.takeHit()
         player1.isAttacking = false;
-        player2.health -= 20
         document.querySelector('#playerTwoHealth').style.width = player2.health + '%'
+    }
+
+    // if player misses
+    if (player1.isAttacking && player1.frameCurrent === 4) {
+        player1.isAttacking = false
     }
 
     if (
     rectangularCollision({
         rectangle1: player2,
         rectangle2: player1
-    }) && player2.isAttacking) {
+    }) && 
+    player2.isAttacking
+    ) {
+    player1.takeHit()
     player2.isAttacking = false;
-    player1.health -= 20
     document.querySelector('#playerOneHealth').style.width = player1.health + '%'
+    }
+
+    if (player2.isAttacking && player2.frameCurrent === 2) {
+        player2.isAttacking = false
     }
 
     // end game based on health
@@ -240,6 +287,7 @@ decreaseTimer()
 animate()
 
 window.addEventListener('keydown', () => {
+    if (!player1.dead) {
     switch (event.key) {
         // Player 1 Buttons
 
@@ -262,8 +310,11 @@ window.addEventListener('keydown', () => {
                 player1.attack('attack1')
             }
             break
-
-        // Player 2 buttons
+        }
+    }
+    // Player 2 buttons
+if (!player2.dead) {
+    switch(event.key){
         case 'ArrowUp':
             keys.ArrowUp.pressed = true
             player2.lastJump = 'ArrowUp'
@@ -277,13 +328,13 @@ window.addEventListener('keydown', () => {
             player2.lastKey = 'ArrowRight'
             break
         case 'ArrowDown':
-            
             if (player2.isAttacking === true && player2.frameCurrent > 0) {
                 player2.attack('attack2')
             } else {
                 player2.attack('attack1')
             }
             break
+        }
     }
     console.log(event);
 })
